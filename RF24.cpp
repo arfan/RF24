@@ -623,9 +623,11 @@ bool RF24::begin(void)
 	}
 	else
 	{
-	#if defined (SERIAL_DEBUG) || defined (RF24_LINUX)
-	  printf_P(PSTR("Init SPI SW failed\r\n"));
-	#endif
+		pinMode(ce_pin,OUTPUT);
+		pinMode(csn_pin,OUTPUT);
+		_SPI.begin();
+		ce(LOW);
+		csn(HIGH);
 	}
   #else
     // Initialize pins
