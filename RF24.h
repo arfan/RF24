@@ -63,7 +63,9 @@ private:
 #if defined (MRAA)
   GPIO gpio;
 #endif
-
+  uint16_t sck_pin;
+  uint16_t miso_pin;
+  uint16_t mosi_pin;
   uint16_t ce_pin; /**< "Chip Enable" pin, activates the RX or TX role */
   uint16_t csn_pin; /**< SPI Chip select */
   uint16_t spi_speed; /**< SPI Bus Speed */
@@ -106,8 +108,12 @@ public:
    *
    * @param _cepin The pin attached to Chip Enable on the RF module
    * @param _cspin The pin attached to Chip Select
+   * @param sck The pin attached to SCKL
+   * @param miso The pin attached to MISO
+   * @param mosi The pin attached to MOSI
+   *
    */
-  RF24(uint16_t _cepin, uint16_t _cspin);
+  RF24(uint16_t _cepin, uint16_t _cspin, uint16_t sck=-1, uint16_t miso=-1, uint16_t mosi=-1);
   //#if defined (RF24_LINUX)
   
     /**

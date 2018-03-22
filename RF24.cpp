@@ -42,6 +42,7 @@ void RF24::csn(bool mode)
 		_SPI.setBitOrder(MSBFIRST);
 		_SPI.setDataMode(SPI_MODE0);
 		_SPI.setClockDivider(SPI_CLOCK_DIV2);
+
       #endif
 #elif defined (RF24_RPi)
       if(!mode)
@@ -415,13 +416,15 @@ void RF24::print_address_register(const char* name, uint8_t reg, uint8_t qty)
 #endif
 /****************************************************************************/
 
-RF24::RF24(uint16_t _cepin, uint16_t _cspin):
-  ce_pin(_cepin), csn_pin(_cspin), p_variant(false),
-  payload_size(32), dynamic_payloads_enabled(false), addr_width(5),csDelay(5)//,pipe0_reading_address(0)
+RF24::RF24(uint16_t _cepin, uint16_t _cspin, uint16_t sck, uint16_t miso, uint16_t mosi):
+	ce_pin(_cepin), csn_pin(_cspin), p_variant(false),
+	  payload_size(32), dynamic_payloads_enabled(false), addr_width(5),csDelay(5)
 {
-  pipe0_reading_address[0]=0;
+	  sck_pin = sck;
+	  miso_pin = miso;
+	  mosi_pin = mosi;
+	  pipe0_reading_address[0]=0;
 }
-
 /****************************************************************************/
 
 #if defined (RF24_LINUX) && !defined (MRAA)//RPi constructor
@@ -609,15 +612,30 @@ bool RF24::begin(void)
 	ce(LOW);
 	csn(HIGH);
 	delay(200);
+  #elif defined(ESP32)
+	if(sck_pin != -1 && miso_pin != -1 && mosi_pin != -1)
+	{
+		pinMode(ce_pin,OUTPUT);
+		pinMode(csn_pin,OUTPUT);
+		_SPI.begin(sck_pin,miso_pin,mosi_pin,csn_pin);
+		ce(LOW);
+		csn(HIGH);
+	}
+	else
+	{
+	#if defined (SERIAL_DEBUG) || defined (RF24_LINUX)
+	  printf_P(PSTR("Init SPI SW failed\r\n"));
+	#endif
+	}
   #else
     // Initialize pins
-    if (ce_pin != csn_pin) pinMode(ce_pin,OUTPUT);  
-  
+    if (ce_pin != csn_pin) pinMode(ce_pin,OUTPUT);
+
     #if ! defined(LITTLEWIRE)
       if (ce_pin != csn_pin)
     #endif
         pinMode(csn_pin,OUTPUT);
-    
+
     _SPI.begin();
     ce(LOW);
   	csn(HIGH);
